@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+    aspcore:
+        image: python_bot:v3
+        #build: .
+        #depends_on: 
+        #    - basedatos
+        #links: 
+        #    - basedatos:basedatos
+        expose:
+            - '80'
+            #- '443'
+            #- '433:433'
+        #volumes:
+        #    - ~/netcore/app:/app
+        #   - ~/netcore/SolucionChacoCooperativa/core-app/wwwroot/Image:/app/wwwroot/Image
+        restart: always
+        environment:
+            - API_KEY=Development
+            - API_SECRET=gchavez.vs2019@gmail.com
+            

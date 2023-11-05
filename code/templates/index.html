@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Currency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@4.5.2/dist/lux/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        function cb(selection) {
+            $.getJSON({
+                url: "/callback", data: { 'data': selection }, success: function (result) {
+                    Plotly.newPlot('chart1', result[0], {staticPlot: true});
+                    Plotly.newPlot('chart2', result[1], {staticPlot: true});
+                }
+            });
+        }
+    </script>
+</head>
+<body>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="alert alert-success">
+                {% for message in messages %}
+                    {{ message }}
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <h1 class="display-6 text-center mt-4">Mirador</h1>
+
+    <div class="container">
+        <form action="/buscar" method="POST" class="form-inline">
+            <div class="form-group mx-sm-3">
+                <input type="text" name="paridad" value="" placeholder="BTCUSDT" class="form-control form-control-sm" autofocus>
+            </div>
+            <div class="form-group mx-sm-3">
+                <input type="text" name="intervalo" value="" placeholder="1m" class="form-control form-control-sm" autofocus>
+            </div>
+            <div class="form-group mx-sm-3">
+                <input type="text" name="comienzo" value="" placeholder="1 hour ago UTC" class="form-control form-control-sm" autofocus>
+            </div>   
+            <div class="form-group mx-sm-3">
+                <button type="submit" class="btn btn-primary btn-block">
+                    Buscar
+                </button>
+            </div>   
+        </form>
+    </div>
+    <div class="container">
+        <div id="chart1" class="chart"></div>
+    </div>
+    <div class="container">
+        <div id="chart2" class="chart"></div>
+    </div>
+</body>
+<script>
+    d = {{ graphJSON1 | safe }};
+    Plotly.newPlot('chart1', d, {staticPlot: true});
+    e = {{ graphJSON2 | safe }};
+    Plotly.newPlot('chart2', e, {staticPlot: true});    
+</script>
+</html>

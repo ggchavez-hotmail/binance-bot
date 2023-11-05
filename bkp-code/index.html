@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Currency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@4.5.2/dist/lux/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+</head>
+<body>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="alert alert-success">
+                {% for message in messages %}
+                    {{ message }}
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <h1 class="display-6 text-center mt-4">Mirador</h1>
+
+    <div class="container">
+        <form action="/buscar" method="POST" class="form-inline">
+            <div class="form-group mx-sm-3">
+                <input type="text" name="paridad" value="" placeholder="BTCUSDT" class="form-control form-control-sm" autofocus>
+            </div>
+            <div class="form-group mx-sm-3">
+                <input type="text" name="intervalo" value="" placeholder="1m" class="form-control form-control-sm" autofocus>
+            </div>
+            <div class="form-group mx-sm-3">
+                <input type="text" name="comienzo" value="" placeholder="1 hour ago UTC" class="form-control form-control-sm" autofocus>
+            </div>   
+            <div class="form-group mx-sm-3">
+                <button type="submit" class="btn btn-primary btn-block">
+                    Buscar
+                </button>
+            </div>   
+        </form>
+    </div>
+    
+    <div class="container">        
+        <form action="/graficarSimple" method="POST" class="form-inline">
+            <div class="form-group mx-sm-3">
+                <input class="form-check-input" name="sma3" type="checkbox"> SMA3
+            </div>
+            <div class="form-group mx-sm-3">
+                <input class="form-check-input" name="sma6" type="checkbox"> SMA6
+            </div>
+            <div class="form-group mx-sm-3">
+                <input class="form-check-input" name="sma9" type="checkbox"> SMA9
+            </div>
+
+            <div class="form-group mx-sm-3">
+                <input class="form-check-input" name="dpo" type="checkbox"> DPO
+            </div>
+            <div class="form-group mx-sm-3">
+                <input class="form-check-input" name="preciocompra" type="checkbox"> Precio Compra
+            </div>
+            <div class="form-group mx-sm-3">
+                <input class="form-check-input" name="precioventa" type="checkbox"> Precio Venta
+            </div>
+            <div class="form-group mx-sm-3">
+                <input class="form-check-input" name="rsipreciocompra" type="checkbox"> RSI Precio Compra
+            </div>
+            <div class="form-group mx-sm-3">
+                <input class="form-check-input" name="rsiprecioventa" type="checkbox"> RSI Precio Venta
+            </div>
+            <div class="form-group mx-sm-3">
+                <input class="form-check-input" name="stochpreciocompra" type="checkbox"> STOCH Precio Compra
+            </div>
+            <div class="form-group mx-sm-3">
+                <input class="form-check-input" name="stochprecioventa" type="checkbox"> STOCH Precio Venta
+            </div>
+            <div class="form-group mx-sm-3">
+                <input class="form-check-input" name="bollingerup" type="checkbox"> Bollinger UP
+            </div>
+            <div class="form-group mx-sm-3">
+                <input class="form-check-input" name="bollingermi" type="checkbox"> Bollinger MI
+            </div>
+            <div class="form-group mx-sm-3">
+                <input class="form-check-input" name="bollingerlo" type="checkbox"> Bollinger LO
+            </div>
+
+            <div class="form-group mx-sm-3">
+                <button type="submit" class="btn btn-primary btn-block">
+                    Graficar
+                </button>
+            </div>   
+        </form>
+    </div>
+    <h3 class="display-6 mt-4">Grafico Normal</h3>
+    <div class="row g-3">
+        <img src="/figuraSimple.png" >
+    </div>
+
+          
+    <div class="container">
+        <form action="/graficarIndicadores" method="POST" class="form-inline">
+            <div class="form-group mx-sm-3">
+                <input class="form-check-input" name="rsi11" type="checkbox"> RSI11
+            </div>
+            <div class="form-group mx-sm-3">
+                <input class="form-check-input" name="stochslowk" type="checkbox"> STOCH SlowK
+            </div>
+            <div class="form-group mx-sm-3">
+                <input class="form-check-input" name="stochslowd" type="checkbox"> STOCH SlowD
+            </div>
+            <div class="form-group mx-sm-3">
+                <input class="form-check-input" name="stddev" type="checkbox"> STDDEV
+            </div>
+
+            <div class="form-group mx-sm-3">
+                <button type="submit" class="btn btn-primary btn-block">
+                    Graficar
+                </button>
+            </div> 
+        </form>
+    </div>
+    <h3 class="display-6 mt-4">Grafico Indicadores</h3>
+    <div class="row g-3">
+        <img src="/figuraIndicadores.png" >
+    </div>
+</body>
+</html>
