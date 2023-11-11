@@ -24,9 +24,9 @@ class BinanceBot():
     grafico = None
 
     # valores de las senales para el grafico basico
-    sma3 = True
-    sma6 = True
-    sma9 = True
+    smasl = True
+    smame = True
+    smahi = True
     dpo = True
     precioCompra = True
     precioVenta = True
@@ -71,25 +71,32 @@ class BinanceBot():
             data = pd.DataFrame(self.klines.reshape(-1, 12), dtype=float, columns=['open_time', 'open', 'high', 'low', 'close', 'volume',
                                 'close_time', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'ignore'])
             self.resultado = pd.DataFrame()
+            # obtener cierre
             self.resultado['Cierre'] = data['close']
-            # self.resultado['Fecha_Cierre'] = data['close_time']
+            # medias moviles
             self.resultado['SMASL'] = ta.SMA(
-                data['close'], smaslow)  # media movil simple 3
+                data['close'], smaslow)  # media movil simple lenta
             self.resultado['SMAME'] = ta.SMA(
-                data['close'], smamedia)  # media movil simple 6
+                data['close'], smamedia)  # media movil simple media
             self.resultado['SMAHI'] = ta.SMA(
-                data['close'], smahigh)  # media movil simple 9
+                data['close'], smahigh)  # media movil simple rapida
+
             self.resultado['SMA11'] = ta.SMA(
                 data['close'], 11)  # media movil simple 11
+            # bandas de Bollinger
             self.resultado['upper_band'], self.resultado['middle_band'], self.resultado['lower_band'] = ta.BBANDS(
-                data['close'], timeperiod=20, nbdevup=2, nbdevdn=2, matype=0)  # bandas de Bollinger
+                data['close'], timeperiod=smahigh, nbdevup=2, nbdevdn=2, matype=0)
+            # indicador RSI
             self.resultado['RSI'] = ta.RSI(
-                data['close'], timeperiod=rsi)  # indicador RSI 11
+                data['close'], timeperiod=rsi)
+            # indicador Estocastico
             self.resultado['stoch_slowk'], self.resultado['stoch_slowd'] = ta.STOCH(
-                data['high'], data['low'], data['close'], fastk_period=6, slowk_period=3, slowk_matype=0, slowd_period=3, slowd_matype=0)  # indicador Stochastic
+                data['high'], data['low'], data['close'], fastk_period=smahigh, slowk_period=smaslow, slowk_matype=0, slowd_period=smaslow, slowd_matype=0)  # indicador Stochastic
+            # desviacion estandar
             self.resultado['STDDEV'] = ta.STDDEV(
-                data['close'], timeperiod=20)  # desviacion estandar
+                data['close'], timeperiod=smahigh)
 
+            # realizar los calculos sobre los datos recolectados
             senales = self.__senal(self.resultado)
 
             self.resultado['Compra'] = senales[0]
@@ -113,13 +120,13 @@ class BinanceBot():
             if (tipo == 'simple'):
                 plt.plot(self.resultado['Cierre'], label='Cierre', alpha=0.5)
 
-                if (self.sma3):
+                if (self.smasl):
                     plt.plot(self.resultado['SMASL'], label='SMASL', alpha=0.3)
 
-                if (self.sma6):
+                if (self.smame):
                     plt.plot(self.resultado['SMAME'], label='SMAME', alpha=0.3)
 
-                if (self.sma9):
+                if (self.smahi):
                     plt.plot(self.resultado['SMAHI'], label='SMAHI', alpha=0.3)
 
                 if (self.precioCompra):
@@ -201,73 +208,101 @@ class BinanceBot():
         rsiTendenciaVenta = []
         stochTendenciaCompra = []
         stochTendenciaVenta = []
-        condicion = 0
+        condicion = 1
+        condicionRSI = 1
+        condicionStoch = 1
         senalCompra = False
         senalVenta = False
         for intervalo in range(len(data)):
-            if data['SMASL'][intervalo] > data['SMAME'][intervalo] and data['SMAME'][intervalo] > data['SMAHI'][intervalo]:
+
+            # analisis de tendencia de Stochastic
+            if data['stoch_slowk'][intervalo] < 30 and data['stoch_slowd'][intervalo] < 30:
+                senalCompra = True
+            else:
+                senalCompra = False
+
+            if data['stoch_slowk'][intervalo] > 70 and data['stoch_slowd'][intervalo] > 70:
+                senalVenta = True
+            else:
+                senalVenta = False
+
+            if senalCompra and data['stoch_slowk'][intervalo] < data['stoch_slowd'][intervalo] and data['stoch_slowk'][intervalo] < 30:
+                if condicionStoch != 1:
+                    stochTendenciaCompra.append(data['Cierre'][intervalo])
+                    stochTendenciaVenta.append(np.nan)
+                    condicionStoch = 1
+                else:
+                    stochTendenciaCompra.append(np.nan)
+                    stochTendenciaVenta.append(np.nan)
+            elif senalVenta and data['stoch_slowk'][intervalo] > data['stoch_slowd'][intervalo] and data['stoch_slowk'][intervalo] > 70:
+                if condicionStoch != -1:
+                    stochTendenciaVenta.append(data['Cierre'][intervalo])
+                    stochTendenciaCompra.append(np.nan)
+                    condicionStoch = -1
+                else:
+                    stochTendenciaVenta.append(np.nan)
+                    stochTendenciaCompra.append(np.nan)
+            else:
+                stochTendenciaVenta.append(np.nan)
+                stochTendenciaCompra.append(np.nan)
+                condicionStoch = 0
+
+            # analisis de tendencia de RSI
+            if data['RSI'][intervalo] < 30.00:
+                if condicionRSI != 1:
+                    rsiTendenciaCompra.append(data['Cierre'][intervalo])
+                    rsiTendenciaVenta.append(np.nan)
+                    condicionRSI = 1
+                else:
+                    rsiTendenciaCompra.append(np.nan)
+                    rsiTendenciaVenta.append(np.nan)
+            elif data['RSI'][intervalo] > 70.00:
+                if condicionRSI != -1:
+                    rsiTendenciaVenta.append(data['Cierre'][intervalo])
+                    rsiTendenciaCompra.append(np.nan)
+                    condicionRSI = -1
+                else:
+                    rsiTendenciaVenta.append(np.nan)
+                    rsiTendenciaCompra.append(np.nan)
+            else:
+                rsiTendenciaCompra.append(np.nan)
+                rsiTendenciaVenta.append(np.nan)
+                condicionRSI = 0
+
+            # analisis de SMA
+            if data['SMASL'][intervalo] < data['SMAME'][intervalo] and data['SMAME'][intervalo] < data['SMAHI'][intervalo]:
                 if condicion != 1:
                     compra.append(data['Cierre'][intervalo])
                     venta.append(np.nan)
                     condicion = 1
                 else:
-                    compra.append(np.nan)
                     venta.append(np.nan)
-            elif data['SMASL'][intervalo] < data['SMAME'][intervalo] and data['SMAME'][intervalo] < data['SMAHI'][intervalo]:
+                    compra.append(np.nan)
+            elif data['SMASL'][intervalo] > data['SMAME'][intervalo] and data['SMAME'][intervalo] > data['SMAHI'][intervalo]:
                 if condicion != -1:
                     venta.append(data['Cierre'][intervalo])
                     compra.append(np.nan)
                     condicion = -1
                 else:
-                    venta.append(np.nan)
                     compra.append(np.nan)
+                    venta.append(np.nan)
             else:
                 compra.append(np.nan)
                 venta.append(np.nan)
                 condicion = 0
 
+            # Para eliminarlo hay que ver donde se agrega
             if (data['Cierre'][intervalo] - data['SMA11'][intervalo]) <= 0.0001:
                 detrendedPriceOscillator.append(data['Cierre'][intervalo])
             else:
                 detrendedPriceOscillator.append(np.nan)
-            # analisis de tendencia de RSI
-            if data['RSI'][intervalo] > 70.00:
-                rsiTendenciaVenta.append(data['Cierre'][intervalo])
-            else:
-                rsiTendenciaVenta.append(np.nan)
-
-            if data['RSI'][intervalo] < 30.00:
-                rsiTendenciaCompra.append(data['Cierre'][intervalo])
-            else:
-                rsiTendenciaCompra.append(np.nan)
-
-            # analisis de tendencia de Stochastic
-            if data['stoch_slowk'][intervalo] < 20 and data['stoch_slowd'][intervalo] < 20:
-                senalCompra = True
-            else:
-                senalCompra = False
-
-            if senalCompra and data['stoch_slowk'][intervalo] < data['stoch_slowd'][intervalo] and data['stoch_slowk'][intervalo] < 20:
-                stochTendenciaCompra.append(data['Cierre'][intervalo])
-            else:
-                stochTendenciaCompra.append(np.nan)
-
-            if data['stoch_slowk'][intervalo] > 80 and data['stoch_slowd'][intervalo] > 80:
-                senalVenta = True
-            else:
-                senalVenta = False
-
-            if senalVenta and data['stoch_slowk'][intervalo] > data['stoch_slowd'][intervalo] and data['stoch_slowk'][intervalo] > 80:
-                stochTendenciaVenta.append(data['Cierre'][intervalo])
-            else:
-                stochTendenciaVenta.append(np.nan)
 
         return (compra, venta, detrendedPriceOscillator, rsiTendenciaCompra, rsiTendenciaVenta, stochTendenciaCompra, stochTendenciaVenta)
 
-    def setSenalGraficoBasico(self, sma3, sma6, sma9, dpo, precioCompra, precioVenta, rsiPrecioCompra, rsiPrecioVenta, stochPrecioCompra, stochPrecioVenta, bollingerUp, bollingerMi, bollingerLo):
-        self.sma3 = sma3
-        self.sma6 = sma6
-        self.sma9 = sma9
+    def setSenalGraficoBasico(self, smasl, smame, smahi, dpo, precioCompra, precioVenta, rsiPrecioCompra, rsiPrecioVenta, stochPrecioCompra, stochPrecioVenta, bollingerUp, bollingerMi, bollingerLo):
+        self.smasl = smasl
+        self.smame = smame
+        self.smahi = smahi
         self.dpo = dpo
         self.precioCompra = precioCompra
         self.precioVenta = precioVenta

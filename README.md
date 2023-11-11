@@ -18,3 +18,6 @@ wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz \
 # Ejecutar aplicacion
 
 flask --app ./code/app run
+
+-37095.31000000
++37037.72000000

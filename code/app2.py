@@ -5,7 +5,7 @@ from matplotlib.pyplot import title
 import plotly
 import plotly.express as px
 import plotly.graph_objs as go
-from bot4 import BinanceBot
+from bot5 import BinanceBot
 
 demo = True
 binance = BinanceBot(demo)
@@ -26,7 +26,7 @@ def cb():
 def index():
     paridad = 'BTCUSDT'  # request.form['paridad']
     intervalo = '15m'  # request.form['intervalo']
-    comienzo = '1 day ago UTC'  # request.form['comienzo']
+    comienzo = '5 days ago UTC'  # request.form['comienzo']
     #
     binance.get_historical_klines(paridad, intervalo, comienzo)
     graficos = gm(binance.get_resultado(12, 17, 26, 14),
@@ -62,12 +62,12 @@ def gm(data, paridad, intervalo, comienzo):
                           go.Scatter(x=df.index, y=df['SMAHI'], mode='lines', name='SMAHI', line=dict(
                               color='yellow', dash='dash')),
 
-                          go.Scatter(x=df.index, y=df['upper_band'], mode='lines', name='bollingerUp', line=dict(
-                              color='#00ff00', dash='dot')),
-                          go.Scatter(x=df.index, y=df['middle_band'], mode='lines', name='bollingerMi', line=dict(
-                              color='#ff0000', dash='dot')),
-                          go.Scatter(x=df.index, y=df['lower_band'], mode='lines', name='bollingerLo', line=dict(
-                              color='#0000ff', dash='dot')),
+                          # go.Scatter(x=df.index, y=df['upper_band'], mode='lines', name='bollingerUp', line=dict(
+                          #    color='#00ff00', dash='dot')),
+                          # go.Scatter(x=df.index, y=df['middle_band'], mode='lines', name='bollingerMi', line=dict(
+                          #    color='#ff0000', dash='dot')),
+                          # go.Scatter(x=df.index, y=df['lower_band'], mode='lines', name='bollingerLo', line=dict(
+                          #    color='#0000ff', dash='dot')),
 
                           go.Scatter(x=df.index, y=df['Compra'], mode='markers', name='Compra', marker=dict(
                               color='red', size=15)),
@@ -92,8 +92,8 @@ def gm(data, paridad, intervalo, comienzo):
                                color='red')),
                            go.Scatter(x=df.index, y=df['stoch_slowd'], mode='lines', name='stoch_slowd', line=dict(
                                color='green')),
-                           go.Scatter(x=df.index, y=df['STDDEV'], mode='lines', name='STDDEV', line=dict(
-                               color='yellow'))
+                           # go.Scatter(x=df.index, y=df['STDDEV'], mode='lines', name='STDDEV', line=dict(
+                           #    color='yellow'))
 
                            ])
     fig2.update_layout(
